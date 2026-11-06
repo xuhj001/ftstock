@@ -26,7 +26,7 @@ rows:[...document.querySelectorAll('section.watchlist-modal .list-item')].map(r=
 def report(tag):
     w.grab().save(str(HERE / f"default_{tag}.png"))
     acts = [(a.text(), a.isChecked()) for a in w.findChildren(futu_app.QToolBar)[0].actions() if a.text()]
-    print(tag, "| mode", w.left_mode, "| file", TMP.exists(), "| actions", acts, "| status", w.status.text(), flush=True)
+    print(tag, "| file", TMP.exists(), "| actions", acts, "| status", w.status.text(), flush=True)
     w.watch_view.page().runJavaScript(INFO, 0, lambda r: print("   left:", r, flush=True))
 
 

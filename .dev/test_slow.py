@@ -49,8 +49,7 @@ def switch_off():
 
 
 def done():
-    print("debug: since last", round(time.monotonic() - w.local_refreshed_at, 1), "mode", w.left_mode,
-          "visible", w.watch_view.isVisible(), "busy", w.local_busy, "paused",
+    print("debug: since last", round(time.monotonic() - w.local_refreshed_at, 1), "visible", w.watch_view.isVisible(), "busy", w.local_busy, "paused",
           w.refresh_paused_until > time.monotonic(), "timer", w.refresh_timer.isActive(), flush=True)
     gaps = [round(b - a, 1) for a, b in zip(starts, starts[1:])]
     print("starts while off:", [round(s, 1) for s in starts], "gaps:", gaps, flush=True)

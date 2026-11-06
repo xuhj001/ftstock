@@ -36,7 +36,7 @@ empty:document.documentElement.classList.contains('fa-local-empty')})"""
 
 def report(tag):
     w.grab().save(str(OUT / f"{tag}.png"))
-    print(tag, "| mode", w.left_mode, "| entries", [e["stockCode"] for e in w.local.entries],
+    print(tag, "| entries", [e["stockCode"] for e in w.local.entries],
           "| right", w.detail_view.url().path(), "| status", w.status.text(), flush=True)
     wv.page().runJavaScript(INFO, 0, lambda r: print("   left:", r, flush=True))
 

@@ -729,7 +729,6 @@ class MainWindow(QMainWindow):
         self.local_quotes: dict[str, dict] = {}
         self.local_busy = False
         self.local_info_checked = False
-        self.left_mode = "local"  # local：本地自选；site：站点的热门自选 / 我的自选
         self.watch_blank_polls = 0
         self.cookies: dict[tuple[str, str], str | None] = {}
         self.use_disk_cookies = True
@@ -778,8 +777,6 @@ class MainWindow(QMainWindow):
         geometry = self.settings.value("geometry")
         if isinstance(geometry, QByteArray):
             self.restoreGeometry(geometry)
-        # page 是工具栏当前标签：local / site 为自选列表（点股票才在右侧展开详情），market 为市场页（独占）
-        self.page = "local"
         self._layout(detail=False)
         self.setWindowTitle("富途牛牛")
 
@@ -845,16 +842,11 @@ class MainWindow(QMainWindow):
         self.addToolBar(bar)
 
         self.act_back = QAction("←", self, triggered=lambda: self.detail_view.back())
-        self.act_local = QAction("本地自选", self, checkable=True, checked=True,
-                                 triggered=lambda: self.switch_page("local"))
-        self.act_watch = QAction("热门自选", self, checkable=True, triggered=lambda: self.switch_page("site"))
-        self.act_market = QAction("美股市场", self, checkable=True, triggered=lambda: self.switch_page("market"))
+        self.act_local = QAction("本地自选", self, checkable=True, checked=True, triggered=self.show_list)
         self.act_reload = QAction("刷新", self, shortcut=QKeySequence.StandardKey.Refresh,
                                   triggered=self.reload_all)
         bar.addAction(self.act_back)
         bar.addAction(self.act_local)
-        bar.addAction(self.act_watch)
-        bar.addAction(self.act_market)
         self.detail_view.urlChanged.connect(self._on_detail_url)
 
         self.local_input = QLineEdit(self)
@@ -894,25 +886,13 @@ class MainWindow(QMainWindow):
             else:
                 view.reload()
 
-    # ---------- 工具栏标签：本地自选 / 热门自选 / 美股市场 ----------
+    # ---------- 工具栏「本地自选」 ----------
 
-    def switch_page(self, page: str):
-        """切换标签后之前展开的右侧详情一并收起：市场页独占整个窗口，自选列表保持原宽度、右侧留白"""
-        if page == "market":
-            self.page = "market"
-            self._layout(detail=True)
-            url = self.detail_view.url()
-            if not (is_futu_page(url) and MARKET_PATH_RE.match(url.path())):
-                self.detail_view.load(QUrl(US_MARKET_URL))
-        else:
-            changed = page != self.left_mode
-            self.page = self.left_mode = page
-            self._layout(detail=False)
-            if changed:
-                self._push_local()
-                if page == "local":
-                    self._refresh_local_quotes()
-        self._sync_tabs()
+    def show_list(self, *_):
+        """收起右侧详情：列表保持原宽度、右侧留白"""
+        self._layout(detail=False)
+        self.act_local.setChecked(True)  # 可勾选的按钮再点一下会变成未勾选
+        self._update_status()
 
     def _show_detail(self):
         """打开个股：自选列表页里右侧空白处换成详情，左侧列表不动"""
@@ -921,15 +901,12 @@ class MainWindow(QMainWindow):
             self._update_status()
 
     def _layout(self, detail: bool):
-        list_page = self.page != "market"
-        self.watch_box.setVisible(list_page)
         self.detail_view.setVisible(detail)
-        self.blank.setVisible(list_page and not detail)
-        if list_page:
-            self.watch_box.set_inner_width(self.left_width)
-            left = self._peek_width() if detail else self.left_width
-            rest = max(self.splitter.width() - left, 400)
-            self.splitter.setSizes([left, rest if detail else 0, 0 if detail else rest])
+        self.blank.setVisible(not detail)
+        self.watch_box.set_inner_width(self.left_width)
+        left = self._peek_width() if detail else self.left_width
+        rest = max(self.splitter.width() - left, 400)
+        self.splitter.setSizes([left, rest if detail else 0, 0 if detail else rest])
 
     def _peek_width(self) -> int:
         """展开详情时左侧露出的宽度：到名称列右边为止"""
@@ -947,16 +924,9 @@ class MainWindow(QMainWindow):
             self.left_width = max(self.watch_box.width(), 280)
             self.watch_box.set_inner_width(self.left_width)
 
-    def _sync_tabs(self):
-        self.act_local.setChecked(self.page == "local")
-        self.act_watch.setChecked(self.page == "site")
-        self.act_market.setChecked(self.page == "market")
-        self._update_status()
-
     def _push_local(self):
-        on = self.left_mode == "local"
-        items = [build_item(e, self.local_quotes.get(e["stockId"])) for e in self.local.entries] if on else []
-        js = f"window.__faSetLocal && window.__faSetLocal({json.dumps(on)}, {json.dumps(items, ensure_ascii=False)})"
+        items = [build_item(e, self.local_quotes.get(e["stockId"])) for e in self.local.entries]
+        js = f"window.__faSetLocal && window.__faSetLocal(true, {json.dumps(items, ensure_ascii=False)})"
         self.watch_view.page().runJavaScript(js)
 
     def _add_local_input(self):
@@ -995,8 +965,6 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"已添加到本地自选：{label}", 5000)
         else:
             self.statusBar().showMessage(f"{label} 已在本地自选里", 5000)
-        if self.page != "local":
-            self.switch_page("local")
         self._push_local()
         self._refresh_local_quotes()
 
@@ -1068,8 +1036,7 @@ class MainWindow(QMainWindow):
     def _refresh_local_quotes(self):
         # 页面过了网关校验（拿到 wafToken cookie）之前直接调接口会被拦截
         passed = self.states["watch"].get("ready") or self.states["detail"].get("ready")
-        if (self.local_busy or not passed or self.left_mode != "local" or not self.watch_view.isVisible()
-                or not self.local.entries):
+        if self.local_busy or not passed or not self.watch_view.isVisible() or not self.local.entries:
             return
         self.local_busy = True
         self.local_refreshed_at = time.monotonic()
@@ -1101,8 +1068,7 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"本地自选：{error}", 5000)
             if "限流" in error or "频繁" in error:
                 self._pause_refresh()
-        if self.left_mode == "local":
-            self._push_local()
+        self._push_local()
 
     # ---------- 定时刷新 ----------
 
@@ -1111,19 +1077,14 @@ class MainWindow(QMainWindow):
         if self.isMinimized() or now < self.refresh_paused_until:
             return
         if not self.act_auto.isChecked():
-            if (self.left_mode == "local" and self.watch_view.isVisible()
-                    and now - self.local_refreshed_at >= SLOW_REFRESH_S):
+            if now - self.local_refreshed_at >= SLOW_REFRESH_S:
                 self._refresh_local_quotes()
             return
         js = "window.__faRefresh && window.__faRefresh()"
         if (self.detail_view.isVisible() and self.states["detail"].get("ready")
                 and is_futu_page(self.detail_view.url())):
             self.detail_view.page().runJavaScript(js)
-        if self.watch_view.isVisible():
-            if self.left_mode == "local":
-                self._refresh_local_quotes()
-            elif is_futu_page(self.watch_view.url()):
-                self.watch_view.page().runJavaScript(js)
+        self._refresh_local_quotes()
 
     def _pause_refresh(self):
         """30 秒内第二次被拦才暂停：冷启动时偶发一次拦截（还没拿到 wafToken）不算限流"""
@@ -1164,10 +1125,7 @@ class MainWindow(QMainWindow):
     def _detail_url(self) -> str:
         return BASE_URL + self.detail_path
 
-    def _on_detail_url(self, url: QUrl):
-        # 个股页面包屑「美股市场」等跳到市场页：等同于切到「美股市场」标签
-        if self.page != "market" and is_futu_page(url) and MARKET_PATH_RE.match(url.path()):
-            self.switch_page("market")
+    def _on_detail_url(self, _url: QUrl):
         self._update_status()
 
     def route_url(self, url: QUrl):
@@ -1275,12 +1233,11 @@ class MainWindow(QMainWindow):
         self._check_local_info()
         if role == "detail":
             self._start_watch()
-        elif self.left_mode == "local":
+        else:
             self._push_local()
             self._refresh_local_quotes()
 
-        # 从未登录变成已登录（右侧登录页跳回、或其它方式登录）：还没刷新登录态的视图重新加载，
-        # 左侧就会从「热门自选」切到「我的自选」
+        # 从未登录变成已登录（右侧登录页跳回、或其它方式登录）：还没刷新登录态的视图重新加载
         if state["isLogin"] and (self.awaiting_login or self.was_login is False):
             self.awaiting_login = False
             for other, view in self.views.items():
@@ -1341,12 +1298,8 @@ class MainWindow(QMainWindow):
     def _update_status(self):
         login = self._is_login()
         self.act_login.setText("退出登录" if login else "登录")
-        self.act_watch.setText("我的自选" if login else "热门自选")
         uid = (self.states["detail"] or self.states["watch"]).get("uid", "")
-        if self.left_mode == "local":
-            who = f"本地自选 {len(self.local.entries)} 只" + (f" · 已登录 uid {uid}" if login else " · 未登录")
-        else:
-            who = f"已登录 uid {uid}（我的自选）" if login else "未登录（热门自选）"
+        who = f"本地自选 {len(self.local.entries)} 只" + (f" · 已登录 uid {uid}" if login else " · 未登录")
         path = self.detail_view.url().path()
         if not self.detail_view.isVisible():
             where = ""
