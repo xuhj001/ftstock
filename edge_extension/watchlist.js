@@ -51,6 +51,12 @@ const FW = (() => {
     return entries;
   }
 
+  // 导出 / defaults.json 的文本：字段按固定顺序、2 空格缩进、结尾换行，提交到 git 时只有真正改动的行出现在 diff 里
+  function toJson(entries) {
+    const rows = entries.map((e) => Object.fromEntries(Object.keys(ENTRY_FIELDS).map((k) => [k, e[k]])));
+    return JSON.stringify(rows, null, 2) + '\n';
+  }
+
   // TSLA -> [TSLA, null]，NVDA.US / NVDA-US -> [NVDA, US]，700 -> [00700, HK]，600519 -> [600519, null]
   function parseCode(text) {
     const s = String(text || '').trim().toUpperCase().replace(/\./g, '-');
@@ -319,5 +325,5 @@ const FW = (() => {
     }
   }
 
-  return { LocalWatchlist, SaveError, StockNotFound, validate, parseCode, resolve, stockInfos, MARKET_LABELS };
+  return { LocalWatchlist, SaveError, StockNotFound, validate, toJson, parseCode, resolve, stockInfos, MARKET_LABELS };
 })();

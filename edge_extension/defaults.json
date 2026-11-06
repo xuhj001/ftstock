@@ -54,6 +54,15 @@
     "subInstrumentType": 4002
   },
   {
+    "stockId": "207016",
+    "stockCode": "SCHD",
+    "marketType": 2,
+    "marketLabel": "US",
+    "name": "美国红利股ETF-Schwab",
+    "instrumentType": 4,
+    "subInstrumentType": 4002
+  },
+  {
     "stockId": "205189",
     "stockCode": "AAPL",
     "marketType": 2,
@@ -79,15 +88,6 @@
     "name": "微软",
     "instrumentType": 3,
     "subInstrumentType": 3002
-  },
-  {
-    "stockId": "207016",
-    "stockCode": "SCHD",
-    "marketType": 2,
-    "marketLabel": "US",
-    "name": "美国红利股ETF-Schwab",
-    "instrumentType": 4,
-    "subInstrumentType": 4002
   },
   {
     "stockId": "207605",
@@ -178,14 +178,5 @@
     "name": "汇丰控股",
     "instrumentType": 3,
     "subInstrumentType": 3005
-  },
-  {
-    "stockId": "203052",
-    "stockCode": "KO",
-    "marketType": 2,
-    "marketLabel": "US",
-    "name": "可口可乐",
-    "instrumentType": 3,
-    "subInstrumentType": 3002
   }
 ]

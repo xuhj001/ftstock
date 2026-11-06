@@ -629,14 +629,39 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ui.conf
 
 // ---------- 导入 / 导出 ----------
 
-ui.exportBtn.addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(list.entries, null, 2)], { type: 'application/json' });
+// 默认文件名 defaults.json：存到项目的 edge_extension 文件夹覆盖它，就是提交到 git 的那份备份；
+// 存储丢失时扩展会自动用它恢复。保存对话框会记住上次的文件夹。
+ui.exportBtn.addEventListener('click', async () => {
+  const text = FW.toJson(list.entries);
+  const n = list.entries.length;
+  if (window.showSaveFilePicker) {
+    let handle;
+    try {
+      handle = await showSaveFilePicker({
+        id: 'watchlist-backup',
+        suggestedName: 'defaults.json',
+        types: [{ description: '本地自选 JSON', accept: { 'application/json': ['.json'] } }],
+      });
+    } catch (err) {
+      if (err.name !== 'AbortError') showMessage(`导出失败：${err.message}`, 6000);
+      return;
+    }
+    try {
+      const w = await handle.createWritable();
+      await w.write(text);
+      await w.close();
+      showMessage(`已导出 ${n} 只到 ${handle.name}`, 5000);
+    } catch (err) {
+      alert(`写入 ${handle.name} 失败：${err.message}`);
+    }
+    return;
+  }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'watchlist.json';
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  a.download = 'defaults.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-  showMessage(`已导出 ${list.entries.length} 只`, 4000);
+  showMessage(`已导出 ${n} 只`, 4000);
 });
 
 ui.importBtn.addEventListener('click', () => ui.importFile.click());
