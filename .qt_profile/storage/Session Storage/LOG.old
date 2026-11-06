@@ -1,7 +1,0 @@
-2026/11/06-21:19:32.499 1bd0 Creating DB D:\work\vs_code\stock\.qt_profile\storage\Session Storage since it was missing.
-2026/11/06-21:19:32.505 1bd0 Reusing MANIFEST D:\work\vs_code\stock\.qt_profile\storage\Session Storage/MANIFEST-000001
-2026/11/06-21:19:32.506 1bd0 Recovering log #23
-2026/11/06-21:19:32.506 1bd0 Reusing old log D:\work\vs_code\stock\.qt_profile\storage\Session Storage/000023.log 
-2026/11/06-21:19:32.506 1bd0 Delete type=2 #5
-2026/11/06-21:19:32.507 1bd0 Delete type=2 #21
-2026/11/06-21:19:32.507 1bd0 Delete type=2 #24
