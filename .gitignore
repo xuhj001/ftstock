@@ -1,0 +1,31 @@
+# 运行时数据：浏览器 profile（含登录 cookie、缓存、日志、窗口位置），绝不能提交
+.qt_profile/
+
+# 打包产物
+build/
+release/
+dist/
+
+# Python 字节码缓存
+__pycache__/
+*.py[cod]
+
+# local_watchlist 保存过程中的临时文件、备份、损坏时另存的副本
+*.bak
+*.tmp
+local_watchlist.corrupt-*.json
+
+# .dev 里测试/探针脚本跑出来的生成物（只保留 .py 脚本）
+.dev/*/
+.dev/*.png
+.dev/*.webp
+.dev/*.js
+.dev/*.html
+.dev/*.log
+.dev/*.json
+.dev/*.txt
+.dev/*.ico
+
+# 系统杂项
+Thumbs.db
+desktop.ini
