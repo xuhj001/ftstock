@@ -1,0 +1,4 @@
+2026/11/06-21:19:33.914 7590 Creating DB D:\work\vs_code\stock\.qt_profile\storage\IndexedDB\https_www.futunn.com_0.indexeddb.leveldb since it was missing.
+2026/11/06-21:19:33.920 7590 Reusing MANIFEST D:\work\vs_code\stock\.qt_profile\storage\IndexedDB\https_www.futunn.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/11/06-21:19:33.920 7590 Recovering log #3
+2026/11/06-21:19:33.923 7590 Reusing old log D:\work\vs_code\stock\.qt_profile\storage\IndexedDB\https_www.futunn.com_0.indexeddb.leveldb/000003.log 

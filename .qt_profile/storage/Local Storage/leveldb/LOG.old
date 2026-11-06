@@ -1,0 +1,8 @@
+2026/11/06-21:19:32.154 7590 Creating DB D:\work\vs_code\stock\.qt_profile\storage\Local Storage\leveldb since it was missing.
+2026/11/06-21:19:32.168 7590 Reusing MANIFEST D:\work\vs_code\stock\.qt_profile\storage\Local Storage\leveldb/MANIFEST-000001
+2026/11/06-21:19:32.168 7590 Recovering log #4
+2026/11/06-21:19:32.168 7590 Reusing old log D:\work\vs_code\stock\.qt_profile\storage\Local Storage\leveldb/000004.log 
+2026/11/06-21:19:32.169 7590 Delete type=2 #5
+2026/11/06-21:19:49.063 7590 Level-0 table #6: started
+2026/11/06-21:19:49.071 7590 Level-0 table #6: 22280 bytes OK
+2026/11/06-21:19:49.073 7590 Delete type=0 #4
